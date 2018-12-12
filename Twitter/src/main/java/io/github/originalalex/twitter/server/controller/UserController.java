@@ -6,13 +6,18 @@ import io.github.originalalex.twitter.server.models.user.User;
 import io.github.originalalex.twitter.server.repositories.UserRepository;
 import io.github.originalalex.twitter.server.verification.RegistrationVerification;
 import io.github.originalalex.twitter.utils.HashUtils;
+import io.github.originalalex.twitter.utils.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.xml.ws.Response;
 import java.util.List;
 
 @RestController
@@ -33,7 +38,7 @@ public class UserController {
         if (userRepository.findByEmail(registration.getEmail()) != null) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
-                    .body("Username already in use");
+                    .body("Email already in use");
         }
         String password = registration.getPassword();
         String verdict = RegistrationVerification.isPasswordValid(password);
@@ -63,13 +68,17 @@ public class UserController {
     }
 
     @RequestMapping(value = "/signin", method = RequestMethod.POST)
-    public ResponseEntity signin(@Valid @RequestBody SigninAttempt credentials) {
+    public ResponseEntity signin(@Valid @RequestBody SigninAttempt credentials, HttpServletResponse response) {
         String usernameOrEmail = credentials.getUsernameOrEmail();
         String password = credentials.getPassword();
         String passwordHash = HashUtils.SHA256Hash(password);
         User user = userRepository.findByName(usernameOrEmail);
+        System.out.println(usernameOrEmail);
+        System.out.println(user);
         if (user != null) {
-            if (user.getPasswordHash().equals(password)) {
+            if (user.getPasswordHash().equals(user.getPasswordHash())) {
+                String token = TokenUtils.getToken(user.getUsername(), user.getRole());
+                response.addCookie(new Cookie("token", token));
                 return ResponseEntity
                         .status(HttpStatus.OK)
                         .body("Signed in");
@@ -86,4 +95,24 @@ public class UserController {
                 .status(HttpStatus.UNAUTHORIZED)
                 .body("Invalid username or password");
     }
+
+    @RequestMapping(value = "/test", method = RequestMethod.GET)
+    public ResponseEntity test(HttpServletResponse response) {
+        response.addCookie(new Cookie("test", "123"));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body("here's a cookie");
+    }
+
+    @RequestMapping(value = "cookieCheck", method = RequestMethod.GET)
+    public ResponseEntity testCookie(HttpServletRequest request) {
+        System.out.println(request.getCookies().length);
+        for (Cookie c : request.getCookies()) {
+            System.out.println(c.getName() + ":" + c.getValue());
+        }
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body("checked");
+    }
+
 }

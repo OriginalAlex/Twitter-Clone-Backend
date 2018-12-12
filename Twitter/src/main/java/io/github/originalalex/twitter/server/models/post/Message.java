@@ -17,10 +17,10 @@ public class Message {
     @NotEmpty
     private String content;
 
-    @OneToOne
+    @ManyToOne
     private Conversation conversationBelongingTo;
 
-    @OneToOne
+    @ManyToOne
     private User sender;
 
     private Date dateSent;

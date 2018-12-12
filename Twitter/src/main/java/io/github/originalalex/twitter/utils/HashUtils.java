@@ -14,7 +14,9 @@ public class HashUtils {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(saltedInput.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(hash);
+            String decoded = Base64.getEncoder().encodeToString(hash);
+            System.out.println(decoded);
+            return decoded;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }

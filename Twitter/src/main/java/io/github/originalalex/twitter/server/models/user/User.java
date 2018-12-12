@@ -47,11 +47,13 @@ public class User {
     private String email;
     private String bio;
     private String website;
+    private String role;
 
     public User(String username, String passwordHash, String email) {
         this.username = username;
         this.passwordHash = passwordHash;
         this.email = email;
+        this.role = "user";
         this.posts = new HashSet<>();
         this.conversations = new HashSet<>();
         this.followers = new HashSet<>();
@@ -188,6 +190,10 @@ public class User {
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
     }
+
+    public String getRole() { return this.role; }
+
+    public void setRole(String role) { this.role = role; }
 
 
 }
